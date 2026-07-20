@@ -1,0 +1,8 @@
+python-dotenv
+langchain
+langchain-google-genai
+google-genai
+tavily
+pypdf 
+langchain-community
+langchain-text-splitters
