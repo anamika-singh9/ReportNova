@@ -1,40 +1,61 @@
 from app.llms.model_factory import get_model 
 
-def generate_report(research_data: str) -> str:
+class WriterAgent:
     """
-    Generate a structured report from research data.
+    Write Agent
+
+    Responsibility:
+    - Convert Verified research notes into a professional report.
+    - Structure the information clearly.
+
+    It DOES NOT:
+    - Perform research.
+    - Verify facts.
+    - Reivew the final report.
     """
-    model = get_model()
+    
+    def __init__(self):
+        self.llm = get_model()
 
-    prompt = f"""
-    You are a professional research report writer.
+    def writer(self, research_data: str) -> str:
+        """
+        Generate a structured research report.
+        """
 
-    Create a detailed and well-structured report using the research information below.
+        prompt = f"""
 
-    Research Information:
-    {research_data}
+        You are a professional research report writer.
 
-    follow this format:
+        Your task is to create a detailed reprot using ONLY the verified reasearch information provided.
 
-    # Title
+        verified Research Information:
 
-    ## Introduction
+        {research_data}
 
-    ## Key Findings
+        Follow this structure:
 
-    ## Detailed Analysis
+        # Title
 
-    ## Impact and Future Scope
+        ## Introduction
 
-    ## Conclusion
+        ## Key Findings
 
-    ## Sources
-        - include all source URLs provided in the research information.
+        ## Detailed Analysis
 
-    Write in a professional and easy-to-understand manner.
+        ## Impact and Future Scope
 
-    """
+        ## Conclusion
 
-    response = model.invoke(prompt)
+        ## Sources
 
-    return response.text
+        Rules:
+        - Keep the report professional and easy to understand.
+        - Do not add usupported information.
+        - Maintain logical flow between sections.
+        - Use clear explanations.
+
+        """
+
+        response = self.llm.invoke(prompt)
+
+        return response.text

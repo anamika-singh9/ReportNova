@@ -1,0 +1,42 @@
+/* -------------------- Main Background -------------------- */
+
+.stApp {
+    background: linear-gradient(135deg,#0F172A,#111827,#1E293B);
+}
+
+/* -------------------- Sidebar -------------------- */
+
+section[data-testid="stSidebar"] {
+    background: rgba(17,24,39,0.95);
+    border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+/* -------------------- Glass Cards -------------------- */
+
+.glass-card{
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    border-radius:20px;
+
+    border:1px solid rgba(255,255,255,0.10);
+
+    padding:25px;
+
+    margin-bottom:20px;
+
+    box-shadow:
+    0 8px 30px rgba(0,0,0,.35);
+}
+
+/* -------------------- Titles -------------------- */
+
+.main-title{
+    color:white;
+    font-size:40px;
+    font-weight:700;
+}
+
+.sub-title{
+    color:#
