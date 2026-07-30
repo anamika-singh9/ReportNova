@@ -6,6 +6,7 @@ from app.graph.nodes import (
     researcher_node,
     fact_checker_node,
     writer_node,
+    citation_node,
     reviewer_node,
     pdf_node,
 )
@@ -28,6 +29,7 @@ def build_graph():
     workflow.add_node("researcher", researcher_node)
     workflow.add_node("fact_checker", fact_checker_node)
     workflow.add_node("writer", writer_node)
+    workflow.add_node("citation", citation_node)
     workflow.add_node("reviewer", reviewer_node)
     workflow.add_node("pdf_generator", pdf_node)
 
@@ -55,10 +57,20 @@ def build_graph():
     },
     )
 
-    workflow.add_edge("writer", "reviewer")
+    workflow.add_edge("writer", "citation")
+    workflow.add_edge("citation", "reviewer")
     workflow.add_edge("reviewer", "pdf_generator")
 
     # Finish workflow
     workflow.add_edge("pdf_generator", END)
 
     return workflow.compile()
+
+def total_workflow_nodes():
+    """
+    Returns total executable nodes.
+    """
+
+    graph = build_graph()
+
+    return len(graph.get_graph().nodes) - 2

@@ -39,4 +39,100 @@ section[data-testid="stSidebar"] {
 }
 
 .sub-title{
-    color:#
+    color:#9CA3AF;
+    font-size:18px;
+}
+
+
+/* -------------------- Generate Button -------------------- */
+
+div.stButton>button{
+
+    width:100%;
+
+    height:55px;
+
+    border-radius:14px;
+
+    background:#34D399;
+
+    color:white;
+
+    font-size:20px;
+
+    font-weight:bold;
+
+    border:none;
+
+    transition:0.3s;
+}
+
+div.stButton>button:hover{
+
+    background:#10B981;
+
+    transform:translateY(-2px);
+
+}
+
+/* -------------------- File Uploader -------------------- */
+
+[data-testid="stFileUploader"]{
+
+    border:2px dashed #4B5563;
+
+    border-radius:18px;
+
+    padding:18px;
+
+    background:rgba(255,255,255,.03);
+
+}
+
+/* -------------------- Text Input -------------------- */
+
+input{
+
+    border-radius:14px !important;
+
+}
+
+/* ---------- Containers ---------- */
+
+div[data-testid="stVerticalBlockBorderWrapper"]{
+
+    border-radius:18px;
+
+    background:rgba(255,255,255,.04);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    backdrop-filter:blur(12px);
+
+    padding:12px;
+
+}
+
+/* ---------- Text Input ---------- */
+
+div[data-testid="stTextInput"]{
+
+    margin-top:8px;
+
+}
+
+/* ---------- Selectbox ---------- */
+
+div[data-testid="stSelectbox"]{
+
+    margin-top:8px;
+
+}
+
+/* ---------- Uploader ---------- */
+
+div[data-testid="stFileUploader"]{
+
+    margin-top:10px;
+
+}

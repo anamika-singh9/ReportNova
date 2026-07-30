@@ -1,4 +1,6 @@
 from app.llms.model_factory import get_model
+from app.utils.logger import logger
+from app.utils.exceptions import ModelError
 
 class PlannerAgent:
     """
@@ -41,6 +43,20 @@ class PlannerAgent:
         {topic}
 
         """
-        response = self.llm.invoke(prompt)
+        try:
 
-        return response.text()
+            logger.info("Research planning started.")
+
+            response = self.llm.invoke(prompt)
+
+            logger.info("Research planning completed.")
+
+            return response.text
+
+        except Exception as e:
+
+            logger.exception("Planner agent failed.")
+
+            raise ModelError(
+                "Unable to create research plan."
+            ) from e

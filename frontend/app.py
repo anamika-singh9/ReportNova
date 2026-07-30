@@ -1,65 +1,211 @@
-import streamlit as st
-import requests
+import sys
+import os
+import time
 
-# -------------------------------
-# Page Configuration
-# -------------------------------
+ROOT_DIR = os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))
+)
+
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+import streamlit as st
+
+from frontend.api.backend import (
+    backend_online,
+    generate_report,
+)
+
+from frontend.services.progress_service import (
+    ProgressService,
+)
+
+from frontend.components.sidebar import (
+    render_sidebar,
+)
+
+from frontend.components.header import (
+    render_header,
+)
+
+from frontend.components.input_form import (
+    render_input_form,
+)
+
+from frontend.components.progress import (
+    ProgressUI,
+)
+
+from frontend.components.timeline import (
+    TimelineUI,
+)
+
+from frontend.components.metrics import (
+    render_metrics,
+)
+
+from frontend.components.report import (
+    render_report,
+)
+
+from frontend.components.right_panel import (
+    render_right_panel,
+)
+
+from frontend.components.footer import (
+    render_footer,
+)
+
+# ----------------------------------------------------
+# Session State
+# ----------------------------------------------------
+
+from frontend.services.session import (
+    initialize_session,
+    save_history,
+    save_result,
+)
+
+# ----------------------------------------------------
+# Page
+# ----------------------------------------------------
 
 st.set_page_config(
     page_title="AI Research Lab",
     page_icon="🤖",
-    layout="wide"
+    layout="wide",
 )
 
-# -------------------------------
-# Title
-# -------------------------------
+initialize_session()
 
-st.title("🤖 AI Research Report Generator")
 
-st.write("Generate AI-powered research reports using Agentic AI.")
 
-# -------------------------------
-# Topic Input
-# -------------------------------
+# ----------------------------------------------------
+# CSS
+# ----------------------------------------------------
 
-topic = st.text_input(
-    "Enter Research Topic",
-    placeholder="Example: Artificial Intelligence"
+with open("frontend/styles.css") as css:
+    content = css.read()
+    print(content)
+    st.markdown(
+        f"<style>{content}</style>",
+        unsafe_allow_html=True,
+    )
+# ----------------------------------------------------
+# Sidebar
+# ----------------------------------------------------
+
+render_sidebar(
+    backend_online()
 )
 
-# -------------------------------
-# Generate Button
-# -------------------------------
+# ----------------------------------------------------
+# Layout
+# ----------------------------------------------------
 
-if st.button("Generate Report", use_container_width=True):
+left, right = st.columns([4, 1])
 
-    if topic.strip() == "":
-        st.warning("Please enter a research topic.")
-    else:
+# ====================================================
+# LEFT
+# ====================================================
 
-        with st.spinner("Generating Report..."):
+with left:
 
-            try:
+    render_header()
 
-                response = requests.post(
-                    "http://127.0.0.1:8000/generate-report",
-                    json={"topic": topic},
-                    timeout=300
+    (
+        topic,
+        uploaded_file,
+        citation_style,
+        generate,
+        progress_placeholder,
+        timeline_placeholder,
+    ) = render_input_form()
+
+    if generate:
+
+        if not topic.strip():
+
+            st.warning(
+                "Please enter a research topic."
+            )
+
+        else:
+
+            with progress_placeholder:
+                progress_ui = ProgressUI()
+
+            with timeline_placeholder:
+                timeline_ui = TimelineUI()
+
+            progress_service = ProgressService()
+
+            with st.spinner("Generating report..."):
+
+                result = generate_report(
+                    topic,
+                    citation_style,
+                    uploaded_file,
                 )
 
-                if response.status_code == 200:
+                start_time = time.time()
 
-                    result = response.json()
+                while True:
 
-                    st.success("Report Generated Successfully!")
+                    update = progress_service.get()
 
-                    st.markdown(result["report"])
+                    progress_ui.update(update)
 
-                else:
+                    timeline_ui.update(update)
 
-                    st.error(response.text)
+                    if update["progress"] >= 100:
+                        break
 
-            except Exception as e:
+                    if time.time() - start_time > 900:
+                        st.error("Workflow timed out.")
+                        break
 
-                st.error(str(e))
+                    time.sleep(0.20)
+
+            if result:
+
+                save_history(topic)
+
+                save_result(result)
+
+                st.success(
+                    "✅ Report Generated Successfully"
+                )
+
+# ----------------------------------------------------
+# Show Result
+# ----------------------------------------------------
+
+    if st.session_state.result:
+
+        render_metrics(
+            st.session_state.result
+        )
+
+        render_report(
+            st.session_state.result
+        )
+
+# ====================================================
+# RIGHT
+# ====================================================
+
+with right:
+
+    render_right_panel(
+        history=st.session_state.history,
+        backend_online=backend_online(),
+    )
+
+# ----------------------------------------------------
+# Footer
+# ----------------------------------------------------
+
+render_footer()
+
+

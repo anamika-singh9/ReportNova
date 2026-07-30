@@ -11,3 +11,6 @@ langchain-chroma
 reportlab
 fastapi
 uvicorn
+markdown
+weasyprint
+xhtml2pdf 

@@ -1,26 +1,29 @@
 from typing import TypedDict, Optional
 
+
 class ResearchState(TypedDict):
-    topic:str 
-    # planner output
-    plan : Optional[str]
+    # User Input
+    topic: str
+    citation_style: str
 
-    # Researcher output
-    research_data : Optional[str]
+    # Planner
+    plan: Optional[str]
 
-    # Fact checker output
-    verified_data : Optional[str]
+    # Researcher
+    research_data: Optional[str]
+    sources: Optional[list]
 
-    # Writer output
-    report : Optional[str]
+    # Fact Checker
+    verified_data: Optional[str]
 
-    # Reviewer Output
-    reviewed_report : Optional[str]
+    # Writer
+    report: Optional[str]
 
-    # PDF output
-    pdf_path : Optional[str]
+    # Citation Agent
+    cited_report: Optional[str]
 
+    # Reviewer
+    reviewed_report: Optional[str]
 
-
-
-    
+    # PDF
+    pdf_path: Optional[str]

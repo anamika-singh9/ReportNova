@@ -1,20 +1,10 @@
-from app.llms.model_factory import get_model 
+from app.llms.model_factory import get_model
+from app.utils.logger import logger
+from app.utils.exceptions import ReportGenerationError
 
 class WriterAgent:
-    """
-    Write Agent
-
-    Responsibility:
-    - Convert Verified research notes into a professional report.
-    - Structure the information clearly.
-
-    It DOES NOT:
-    - Perform research.
-    - Verify facts.
-    - Reivew the final report.
-    """
-    
     def __init__(self):
+        
         self.llm = get_model()
 
     def writer(self, research_data: str) -> str:
@@ -23,39 +13,69 @@ class WriterAgent:
         """
 
         prompt = f"""
+    You are a professional AI Research Report Writer.
 
-        You are a professional research report writer.
+    You have been provided with verified research information collected from:
 
-        Your task is to create a detailed reprot using ONLY the verified reasearch information provided.
+    1. Retrieved PDF context (highest priority)
+    2. Web search results (secondary source)
 
-        verified Research Information:
+    Your responsibility is to transform the research into a professional report.
 
-        {research_data}
+    Guidelines:
 
-        Follow this structure:
+    - Use the PDF context as the primary source whenever it is available.
+    - Use web search information only to complement or expand missing details.
+    - Never contradict information found in the PDF.
+    - Avoid repeating the same information.
+    - Do not invent facts.
+    - Maintain a logical flow between sections.
+    - Write in a clear, professional, and easy-to-understand style.
 
-        # Title
+    Verified Research Information:
 
-        ## Introduction
+    {research_data}
 
-        ## Key Findings
+    Create the report using the following structure.
 
-        ## Detailed Analysis
+    # Title
 
-        ## Impact and Future Scope
+    ## Executive Summary
 
-        ## Conclusion
+    ## Introduction
 
-        ## Sources
+    ## Key Concepts
 
-        Rules:
-        - Keep the report professional and easy to understand.
-        - Do not add usupported information.
-        - Maintain logical flow between sections.
-        - Use clear explanations.
+    ## Detailed Analysis
 
-        """
+    ## Applications
 
-        response = self.llm.invoke(prompt)
+    ## Advantages
 
-        return response.text
+    ## Challenges
+
+    ## Future Scope
+
+    ## Conclusion
+
+    ## References
+
+    Format the report in Markdown.
+    """
+        try:
+
+            logger.info("Generating research report.")
+
+            response = self.llm.invoke(prompt)
+
+            logger.info("Report generated successfully.")
+
+            return response.text
+
+        except Exception as e:
+
+            logger.exception("Report generation failed.")
+
+            raise ReportGenerationError(
+                "Unable to generate report."
+            ) from e

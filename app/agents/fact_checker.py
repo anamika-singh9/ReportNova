@@ -1,4 +1,6 @@
 from app.llms.model_factory import get_model
+from app.utils.logger import logger
+from app.utils.exceptions import ModelError
 
 class FactCheckerAgent:
     """
@@ -41,6 +43,20 @@ class FactCheckerAgent:
 
         """
 
-        response = self.llm.invoke(prompt)
+        try:
 
-        return response.text()
+            logger.info("Fact checking started.")
+
+            response = self.llm.invoke(prompt)
+
+            logger.info("Fact checking completed.")
+
+            return response.text
+
+        except Exception as e:
+
+            logger.exception("Fact Checker failed.")
+
+            raise ModelError(
+                "Unable to verify research."
+            ) from e
