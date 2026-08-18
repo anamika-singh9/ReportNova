@@ -1,39 +1,111 @@
 import streamlit as st
 
+from frontend.services.session import (
+    logout,
+)
+
 
 def render_sidebar(
     backend_status: bool,
 ) -> None:
-    """
-    Render the application sidebar.
-
-    Args:
-        backend_status:
-            True if backend is online,
-            otherwise False.
-    """
 
     with st.sidebar:
+
+        # ==========================================
+        # APP TITLE
+        # ==========================================
 
         st.title("🤖 AI Research Lab")
 
         st.markdown("---")
 
-        st.button(
-            "🏠 Dashboard",
-            use_container_width=True,
-            disabled=True,
-        )
 
-        st.button(
-            "🕒 History",
-            use_container_width=True,
-            disabled=True,
-        )
+        # ==========================================
+        # LOGGED-IN USER
+        # ==========================================
+
+        user = st.session_state.user
+
+        if user:
+
+            user_name = user.get(
+                "name",
+                "User",
+            )
+
+            user_email = user.get(
+                "email",
+                "",
+            )
+
+            st.caption("LOGGED IN AS")
+
+            st.write(
+                f"👤 **{user_name}**"
+            )
+
+            if user_email:
+
+                st.caption(
+                    user_email
+                )
+
+        else:
+
+            st.caption(
+                "👤 Logged in"
+            )
 
         st.markdown("---")
 
-        st.caption("Version 1.0")
+
+        # ==========================================
+        # NAVIGATION
+        # ==========================================
+
+        if st.button(
+            "🏠 Dashboard",
+            use_container_width=True,
+        ):
+
+            st.session_state.current_page = (
+                "dashboard"
+            )
+
+            st.rerun()
+
+
+        if st.button(
+            "🕒 History",
+            use_container_width=True,
+        ):
+
+            st.session_state.current_page = (
+                "history"
+            )
+
+            st.rerun()
+
+
+        # ==========================================
+        # LOGOUT
+        # ==========================================
+
+        st.markdown("---")
+
+        if st.button(
+            "🚪 Logout",
+            use_container_width=True,
+        ):
+
+            logout()
+
+            st.rerun()
+
+
+        # ==========================================
+        # BACKEND STATUS
+        # ==========================================
 
         st.markdown("---")
 
@@ -49,17 +121,28 @@ def render_sidebar(
                 "🔴 Backend Offline"
             )
 
+
+        # ==========================================
+        # APP INFO
+        # ==========================================
+
         st.markdown("---")
 
         st.info("🤖 7 AI Agents")
-
         st.info("📚 RAG Enabled")
-
         st.info("🌐 Web Search Enabled")
-
         st.info("📄 PDF Generation")
 
+
+        # ==========================================
+        # VERSION
+        # ==========================================
+
         st.markdown("---")
+
+        st.caption(
+            "Version 1.0"
+        )
 
         st.caption(
             "Built with LangGraph + FastAPI + Streamlit"

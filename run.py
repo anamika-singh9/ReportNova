@@ -3,7 +3,7 @@ from app.llms.model_factory import get_model
 from app.agents.researcher import research
 from app.tools.tavily_search import search_web
 
-from app.agents.report_writer import generate_report
+from app.agents.report_writer import WriterAgent
 
 def main():
     # print("\nStarting Project...\n")
@@ -44,7 +44,9 @@ def main():
 
     print("Generating report...\n")
 
-    report = generate_report(research_result)
+    writer_agent = WriterAgent()
+
+    report = writer_agent.writer(research_result)
 
     print("\nFINAL REPORT\n")
     print(report)

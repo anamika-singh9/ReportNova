@@ -14,3 +14,13 @@ uvicorn
 markdown
 weasyprint
 xhtml2pdf 
+
+sqlalchemy
+psycopg[binary]
+alembic
+pyjwt[crypto]
+pwdlib[argon2]
+
+passlib[bcrypt]
+python-jose[cryptography]
+email-validator
