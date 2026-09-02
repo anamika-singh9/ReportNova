@@ -4,20 +4,29 @@ import streamlit as st
 def render_metrics(result: dict) -> None:
     """
     Render report metrics.
-
-    Args:
-        result:
-            Backend response dictionary.
     """
 
-    report = result.get("report", "")
+    report = result.get(
+        "report",
+        result.get(
+            "report_content",
+            "",
+        ),
+    )
 
-    word_count = len(report.split())
+    word_count = len(
+        report.split()
+    )
 
-    character_count = len(report)
+    character_count = len(
+        report
+    )
 
     source_count = len(
-        result.get("sources", [])
+        result.get(
+            "sources",
+            [],
+        )
     )
 
     generation_time = result.get(

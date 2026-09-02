@@ -6,17 +6,24 @@ def render_input_form():
     Render research input form.
     """
 
-    with st.container(border=True):
+    with st.container(
+        border=True
+    ):
 
-        st.markdown("## 🔬 Research Configuration")
+        st.markdown(
+            "## 🔬 Research Configuration"
+        )
 
         st.caption(
-            "Provide your research topic and optional documents."
+            "Provide your research topic "
+            "and optional documents."
         )
 
         topic = st.text_input(
             "Research Topic",
-            placeholder="Generative AI in Healthcare",
+            placeholder=(
+                "Generative AI in Healthcare"
+            ),
         )
 
         uploaded_file = st.file_uploader(
@@ -27,7 +34,8 @@ def render_input_form():
         if uploaded_file:
 
             st.success(
-                f"Uploaded : {uploaded_file.name}"
+                f"Uploaded: "
+                f"{uploaded_file.name}"
             )
 
         citation_style = st.selectbox(
@@ -40,20 +48,14 @@ def render_input_form():
 
         generate = st.button(
             "🚀 Generate Research Report",
-            use_container_width=True,
+            width="stretch",
         )
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        progress_placeholder = st.empty()
-
-        timeline_placeholder = st.empty()
 
     return (
         topic,
         uploaded_file,
         citation_style,
         generate,
-        progress_placeholder,
-        timeline_placeholder,
     )
+
+

@@ -5,36 +5,30 @@ from frontend.api.backend import get_progress
 
 class ProgressService:
     """
-    Handles live workflow progress polling.
+    Service responsible for retrieving backend workflow progress.
 
-    Responsibilities:
-    - Poll backend progress endpoint.
-    - Return latest workflow status.
-    - Wait between requests to avoid excessive API calls.
+    The service does NOT modify Streamlit session state.
     """
 
     def __init__(
         self,
-        interval: float = 0.2,
+        interval: float = 0.5,
     ):
-
         self.interval = interval
 
-    def get(self) -> dict:
-        """
-        Get latest workflow progress.
+    # ========================================================
+    # GET CURRENT PROGRESS
+    # ========================================================
 
-        Returns:
-            dict
-        """
+    def get(self) -> dict:
 
         return get_progress()
 
+    # ========================================================
+    # STREAM
+    # ========================================================
+
     def stream(self):
-        """
-        Generator that continuously yields progress updates
-        until workflow reaches 100%.
-        """
 
         while True:
 
@@ -42,7 +36,44 @@ class ProgressService:
 
             yield data
 
-            if data.get("progress", 0) >= 100:
+            status = data.get(
+                "status",
+                "idle",
+            )
+
+            if status in (
+                "completed",
+                "failed",
+            ):
+
                 break
 
-            time.sleep(self.interval)
+            time.sleep(
+                self.interval
+            )
+
+    # ========================================================
+    # WAIT
+    # ========================================================
+
+    def wait_until_finished(self):
+
+        while True:
+
+            data = self.get()
+
+            status = data.get(
+                "status",
+                "idle",
+            )
+
+            if status in (
+                "completed",
+                "failed",
+            ):
+
+                return data
+
+            time.sleep(
+                self.interval
+            )

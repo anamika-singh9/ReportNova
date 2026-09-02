@@ -7,10 +7,11 @@ def render_header():
         """
 <div class="glass-card">
 <div class="main-title">
-🤖 AI Research Report Generator
+ReportNova
 </div>
 <div class="sub-title">
-Generate professional research reports using <strong>LangGraph</strong>, <strong>RAG</strong>, <strong>Web Search</strong> and <strong>Multi-Agent AI</strong>.
+Generate professional, well-structured research reports using <strong>LangGraph</strong>, <strong>RAG</strong>, <strong>Web Search</strong> and <strong>Multi-Agent AI</strong>.<br>
+Research, analyze, verify and organize information into publication-ready reports with properly formatted sources.
 </div>
 </div>
 """,

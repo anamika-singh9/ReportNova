@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 
 from frontend.api.backend import (
@@ -14,58 +16,55 @@ from frontend.services.session import (
 
 
 def render_auth_page():
-    """
-    Render Login and Signup page.
-    """
-
-    st.title("🤖 AI Research Lab")
-
-    st.caption(
-        "Login to generate and manage your AI research reports."
+    logo_path = os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "assets",
+            "reportnova_logo.png",
+        )
     )
+
+    if os.path.exists(logo_path):
+        st.image(
+            logo_path,
+            width=260,
+        )
 
     login_tab, signup_tab = st.tabs(
-        ["Login", "Sign Up"]
+        [
+            "🔑 Login",
+            "📝 Sign Up",
+        ]
     )
 
-    # ==========================================
-    # LOGIN
-    # ==========================================
-
     with login_tab:
+        st.subheader("Welcome back")
 
         with st.form("login_form"):
-
             email = st.text_input(
-                "Email"
+                "Email",
+                key="login_email",
             )
 
             password = st.text_input(
                 "Password",
                 type="password",
+                key="login_password",
             )
 
             submitted = st.form_submit_button(
                 "Login",
-                use_container_width=True,
+                width="stretch",
             )
 
         if submitted:
-
             if not email or not password:
-
-                st.warning(
-                    "Please enter email and password."
+                st.error(
+                    "Please enter your email and password."
                 )
-
             else:
-
                 try:
-
-                    # ==================================
-                    # LOGIN REQUEST
-                    # ==================================
-
                     response = login(
                         email=email,
                         password=password,
@@ -76,64 +75,41 @@ def render_auth_page():
                     )
 
                     if not access_token:
-
-                        st.error(
-                            "Login failed. Access token not received."
+                        raise RuntimeError(
+                            "Login failed. No access token received."
                         )
 
-                    else:
-
-                        # ==================================
-                        # GET CURRENT USER
-                        # ==================================
-
-                        user = get_current_user(
-                            access_token=access_token,
-                        )
-
-                        # ==================================
-                        # SAVE LOGIN SESSION
-                        # ==================================
-
-                        save_login(
-                            access_token=access_token,
-                            user=user,
-                        )
-
-                        # ==================================
-                        # LOAD USER REPORTS
-                        # ==================================
-
-                        reports = get_reports(
-                            access_token=access_token,
-                        )
-
-                        save_reports(
-                            reports
-                        )
-
-                        st.success(
-                            "Login successful!"
-                        )
-
-                        st.rerun()
-
-                except Exception as e:
-
-                    st.error(
-                        str(e)
+                    user = get_current_user(
+                        access_token
                     )
 
-    # ==========================================
-    # SIGNUP
-    # ==========================================
+                    save_login(
+                        access_token=access_token,
+                        user=user,
+                    )
+
+                    try:
+                        reports = get_reports(
+                            access_token
+                        )
+                        save_reports(reports)
+                    except Exception:
+                        save_reports([])
+
+                    st.session_state.current_page = "dashboard"
+
+                    st.rerun()
+
+                except Exception as exc:
+                    st.error(str(exc))
 
     with signup_tab:
+        st.subheader("Create your account")
 
         with st.form("signup_form"):
-
             name = st.text_input(
-                "Name"
+                "Name",
+                key="signup_name",
             )
 
             email = st.text_input(
@@ -147,23 +123,35 @@ def render_auth_page():
                 key="signup_password",
             )
 
+            confirm_password = st.text_input(
+                "Confirm Password",
+                type="password",
+                key="signup_confirm_password",
+            )
+
             submitted = st.form_submit_button(
                 "Create Account",
-                use_container_width=True,
+                width="stretch",
             )
 
         if submitted:
-
             if not name or not email or not password:
+                st.error(
+                    "Please fill in all required fields."
+                )
 
-                st.warning(
-                    "Please fill all fields."
+            elif len(password) < 8:
+                st.error(
+                    "Password must be at least 8 characters long."
+                )
+
+            elif password != confirm_password:
+                st.error(
+                    "Passwords do not match."
                 )
 
             else:
-
                 try:
-
                     signup(
                         name=name,
                         email=email,
@@ -175,8 +163,5 @@ def render_auth_page():
                         "Please login."
                     )
 
-                except Exception as e:
-
-                    st.error(
-                        str(e)
-                    )
+                except Exception as exc:
+                    st.error(str(exc))

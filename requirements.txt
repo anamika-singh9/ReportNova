@@ -14,6 +14,7 @@ uvicorn
 markdown
 weasyprint
 xhtml2pdf 
+streamlit
 
 sqlalchemy
 psycopg[binary]
