@@ -400,9 +400,6 @@ def render_sidebar(
                 "ReportNova"
             )
 
-        st.caption(
-            "Multi-Agent Research Report Generator"
-        )
 
         st.markdown("---")
 

@@ -10,18 +10,18 @@ It transforms a research topic, with an optional PDF knowledge source, into a st
 
 ## ✨ Features
 
-- 🤖 Multi-Agent AI Workflow
-- 🧠 LangGraph-based orchestration
-- 📚 RAG-based PDF knowledge retrieval
-- 🌐 Web research
-- ✅ Fact checking
-- ✍️ AI-powered report writing
-- 🔗 Citation generation
-- 🔍 Automated report review
-- ⚡ Live agent progress tracking
-- 🕒 Report history
-- 🔐 User authentication
-- 📄 PDF generation and download
+* 🤖 Multi-Agent AI Workflow
+* 🧠 LangGraph-based orchestration
+* 📚 RAG-based PDF knowledge retrieval
+* 🌐 Web research
+* ✅ Fact checking
+* ✍️ AI-powered report writing
+* 🔗 Citation generation
+* 🔍 Automated report review
+* ⚡ Live agent progress tracking
+* 🕒 Report history
+* 🔐 User authentication
+* 📄 PDF generation and download
 
 ---
 
@@ -61,16 +61,16 @@ RAG        Web Search
 
 ## 🛠️ Tech Stack
 
-- Python
-- Streamlit
-- FastAPI
-- LangGraph
-- RAG
-- PostgreSQL
-- JWT Authentication
-- Web Search
-- PDF Processing
-- Git & GitHub
+* Python
+* Streamlit
+* FastAPI
+* LangGraph
+* RAG
+* PostgreSQL
+* JWT Authentication
+* Web Search
+* PDF Processing
+* Git & GitHub
 
 ---
 
@@ -93,8 +93,8 @@ ReportNova/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/anamika-singh9/ReportNova.git
-cd ReportNova
+git clone https://github.com/anamika-singh9/AI-Research-Report-Generator.git
+cd AI-Research-Report-Generator
 ```
 
 ### 2. Create Virtual Environment
@@ -134,23 +134,23 @@ Frontend: `http://localhost:8501`
 
 ## 🎯 Use Cases
 
-- Academic research
-- Technical report generation
-- AI/ML research
-- Literature-oriented research
-- Document-grounded research
-- Automated research summarization
+* Academic research
+* Technical report generation
+* AI/ML research
+* Literature-oriented research
+* Document-grounded research
+* Automated research summarization
 
 ---
 
 ## 🔮 Future Scope
 
-- Source credibility scoring
-- Citation verification
-- Hallucination detection
-- Multi-document research
-- Research quality evaluation
-- Advanced literature analysis
+* Source credibility scoring
+* Citation verification
+* Hallucination detection
+* Multi-document research
+* Research quality evaluation
+* Advanced literature analysis
 
 ---
 

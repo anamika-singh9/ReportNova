@@ -1,4 +1,5 @@
 import os
+import base64
 
 import streamlit as st
 
@@ -21,14 +22,57 @@ def render_auth_page():
             os.path.dirname(__file__),
             "..",
             "assets",
-            "reportnova_logo.png",
+            "reportnova_logo.png",  # replace this asset with the new transparent PNG
         )
     )
 
     if os.path.exists(logo_path):
-        st.image(
-            logo_path,
-            width=260,
+        with open(logo_path, "rb") as _logo_file:
+            _logo_b64 = base64.b64encode(_logo_file.read()).decode()
+
+        st.markdown(
+            """
+            <style>
+            .reportnova-logo-wrap {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: transparent;
+                margin: 0 auto 1rem auto;
+                padding: 0;
+            }
+            .reportnova-logo-wrap img {
+                width: 260px;
+                max-width: 100%;
+                height: auto;
+                display: block;
+                background: transparent;
+                border: none;
+                outline: none;
+                box-shadow: none;
+                border-radius: 0;
+                mix-blend-mode: normal;
+            }
+            div[data-testid="stImage"] {
+                background: transparent !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            div[data-testid="stImage"] > img {
+                background: transparent !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            f"""
+            <div class="reportnova-logo-wrap">
+                <img src="data:image/png;base64,{_logo_b64}" alt="ReportNova logo" />
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
     login_tab, signup_tab = st.tabs(

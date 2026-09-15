@@ -25,3 +25,5 @@ pwdlib[argon2]
 passlib[bcrypt]
 python-jose[cryptography]
 email-validator
+
+bcrypt==4.0.1
