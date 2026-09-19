@@ -6,22 +6,26 @@ ReportNova is an AI-powered research report generation platform that automates r
 
 It transforms a research topic, with an optional PDF knowledge source, into a structured, cited, and downloadable research report.
 
+**🔗 Live Demo:** [reportnova.streamlit.app](https://reportnova.streamlit.app)
+
+> ⚠️ The backend runs on a free-tier server that sleeps after periods of inactivity. The first request after idle time may take 30–60 seconds to respond while the server wakes up — subsequent requests are fast.
+
 ---
 
 ## ✨ Features
 
-* 🤖 Multi-Agent AI Workflow
-* 🧠 LangGraph-based orchestration
-* 📚 RAG-based PDF knowledge retrieval
-* 🌐 Web research
-* ✅ Fact checking
-* ✍️ AI-powered report writing
-* 🔗 Citation generation
-* 🔍 Automated report review
-* ⚡ Live agent progress tracking
-* 🕒 Report history
-* 🔐 User authentication
-* 📄 PDF generation and download
+- 🤖 Multi-Agent AI Workflow
+- 🧠 LangGraph-based orchestration
+- 📚 RAG-based PDF knowledge retrieval
+- 🌐 Web research
+- ✅ Fact checking
+- ✍️ AI-powered report writing
+- 🔗 Citation generation
+- 🔍 Automated report review
+- ⚡ Live agent progress tracking
+- 🕒 Report history
+- 🔐 User authentication (JWT)
+- 📄 PDF generation and download
 
 ---
 
@@ -59,18 +63,33 @@ RAG        Web Search
 
 ---
 
+## ☁️ Deployment
+
+ReportNova is deployed as two independently hosted services, backed by a managed cloud database:
+
+| Component | Platform | Notes |
+|---|---|---|
+| Frontend (Streamlit) | [Streamlit Community Cloud](https://streamlit.io/cloud) | Free tier |
+| Backend (FastAPI + LangGraph) | [Render](https://render.com) | Free tier — sleeps after inactivity |
+| Database (PostgreSQL) | [Neon](https://neon.tech) | Serverless Postgres, free tier |
+
+The frontend communicates with the backend over HTTPS, with CORS enabled on the backend to allow cross-origin requests. Generated report content is persisted in the database (not just on disk), so reports remain accessible even after a backend restart — the PDF is regenerated on demand if it isn't found on disk.
+
+---
+
 ## 🛠️ Tech Stack
 
-* Python
-* Streamlit
-* FastAPI
-* LangGraph
-* RAG
-* PostgreSQL
-* JWT Authentication
-* Web Search
-* PDF Processing
-* Git & GitHub
+- Python
+- Streamlit
+- FastAPI
+- LangGraph
+- LangChain + ChromaDB (RAG)
+- PostgreSQL (Neon)
+- SQLAlchemy + Alembic
+- JWT Authentication
+- Tavily (Web Search)
+- xhtml2pdf (PDF generation)
+- Git & GitHub
 
 ---
 
@@ -78,9 +97,10 @@ RAG        Web Search
 
 ```text
 ReportNova/
-├── app/                 # FastAPI backend
+├── app/                 # FastAPI backend (agents, graph, API routes, models)
 ├── frontend/            # Streamlit frontend
 ├── alembic/             # Database migrations
+├── config/              # App settings and constants
 ├── requirements.txt
 ├── .env.example
 └── README.md
@@ -93,8 +113,8 @@ ReportNova/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/anamika-singh9/AI-Research-Report-Generator.git
-cd AI-Research-Report-Generator
+git clone https://github.com/anamika-singh9/ReportNova.git
+cd ReportNova
 ```
 
 ### 2. Create Virtual Environment
@@ -112,7 +132,11 @@ pip install -r requirements.txt
 
 ### 4. Configure Environment
 
-Create a `.env` file and add the required API keys and database configuration.
+Create a `.env` file (see `.env.example`) and add your API keys and database configuration, including:
+
+- `DATABASE_URL` — your PostgreSQL connection string
+- `JWT_SECRET_KEY` — a random secret for signing auth tokens
+- `GOOGLE_API_KEY`, `TAVILY_API_KEY` — for LLM and web search
 
 ### 5. Run Backend
 
@@ -124,6 +148,8 @@ Backend: `http://localhost:8000`
 
 ### 6. Run Frontend
 
+In a separate terminal:
+
 ```bash
 streamlit run frontend/app.py
 ```
@@ -134,23 +160,23 @@ Frontend: `http://localhost:8501`
 
 ## 🎯 Use Cases
 
-* Academic research
-* Technical report generation
-* AI/ML research
-* Literature-oriented research
-* Document-grounded research
-* Automated research summarization
+- Academic research
+- Technical report generation
+- AI/ML research
+- Literature-oriented research
+- Document-grounded research
+- Automated research summarization
 
 ---
 
 ## 🔮 Future Scope
 
-* Source credibility scoring
-* Citation verification
-* Hallucination detection
-* Multi-document research
-* Research quality evaluation
-* Advanced literature analysis
+- Source credibility scoring
+- Citation verification
+- Hallucination detection
+- Multi-document research
+- Research quality evaluation
+- Advanced literature analysis
 
 ---
 
