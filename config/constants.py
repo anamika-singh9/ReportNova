@@ -34,4 +34,7 @@ DEFAULT_REPORT_NAME = "research_report.pdf"
 # API
 # ----------------------------
 
-BACKEND_URL = "http://127.0.0.1:8000"
+BACKEND_URL = os.environ.get(
+    "BACKEND_URL",
+    "http://127.0.0.1:8000",
+)

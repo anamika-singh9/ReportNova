@@ -1,6 +1,81 @@
+import time
+
 import requests
 
 from config.constants import BACKEND_URL
+
+
+# ============================================================
+# COLD START CONFIG
+# ============================================================
+# Render free tier sleeps after ~15 min of inactivity.
+# The first request after that can take 30-60s to wake up.
+# These settings control how we retry during that wake-up window.
+
+COLD_START_MAX_RETRIES = 4
+COLD_START_RETRY_DELAY = 8  # seconds between retries
+COLD_START_WAKE_TIMEOUT = 60  # timeout allowance for a "waking up" request
+
+
+# ============================================================
+# INTERNAL: RETRY WRAPPER
+# ============================================================
+
+def _request_with_retry(
+    method: str,
+    url: str,
+    on_retry=None,
+    **kwargs,
+) -> requests.Response:
+    """
+    Wraps requests.request() with retry logic for cold starts.
+
+    If the backend is asleep (Render free tier), the first call(s)
+    may time out or fail to connect. We retry a few times with a
+    short delay before giving up.
+
+    on_retry: optional callback(attempt_number) called before each
+    retry, so the UI (Streamlit) can show a "waking up" message.
+    """
+
+    last_exception = None
+
+    for attempt in range(COLD_START_MAX_RETRIES):
+
+        try:
+
+            response = requests.request(
+                method,
+                url,
+                **kwargs,
+            )
+
+            return response
+
+        except requests.RequestException as exc:
+
+            last_exception = exc
+
+            is_last_attempt = (
+                attempt == COLD_START_MAX_RETRIES - 1
+            )
+
+            if is_last_attempt:
+                break
+
+            if on_retry is not None:
+
+                try:
+                    on_retry(attempt + 1)
+                except Exception:
+                    pass
+
+            time.sleep(COLD_START_RETRY_DELAY)
+
+    raise ConnectionError(
+        "Unable to connect to the backend server. "
+        "It may be starting up — please try again in a moment."
+    ) from last_exception
 
 
 # ============================================================
@@ -23,6 +98,32 @@ def backend_online() -> bool:
         return False
 
 
+def wake_backend(on_retry=None) -> bool:
+    """
+    Actively pings the backend to wake it up if it's sleeping
+    (Render free tier cold start). Call this early — e.g. right
+    when the app loads, or right before generate_report — so the
+    backend has a head start on waking up.
+
+    Returns True if the backend responded, False otherwise.
+    """
+
+    try:
+
+        response = _request_with_retry(
+            "GET",
+            BACKEND_URL,
+            on_retry=on_retry,
+            timeout=COLD_START_WAKE_TIMEOUT,
+        )
+
+        return response.status_code == 200
+
+    except ConnectionError:
+
+        return False
+
+
 # ============================================================
 # AUTHENTICATION
 # ============================================================
@@ -31,26 +132,20 @@ def signup(
     name: str,
     email: str,
     password: str,
+    on_retry=None,
 ) -> dict:
 
-    try:
-
-        response = requests.post(
-            f"{BACKEND_URL}/auth/signup",
-            json={
-                "name": name,
-                "email": email,
-                "password": password,
-            },
-            timeout=10,
-        )
-
-    except requests.RequestException as exc:
-
-        raise ConnectionError(
-            "Unable to connect to the backend server."
-        ) from exc
-
+    response = _request_with_retry(
+        "POST",
+        f"{BACKEND_URL}/auth/signup",
+        on_retry=on_retry,
+        json={
+            "name": name,
+            "email": email,
+            "password": password,
+        },
+        timeout=COLD_START_WAKE_TIMEOUT,
+    )
 
     if response.status_code != 201:
 
@@ -70,32 +165,25 @@ def signup(
 
         raise RuntimeError(detail)
 
-
     return response.json()
 
 
 def login(
     email: str,
     password: str,
+    on_retry=None,
 ) -> dict:
 
-    try:
-
-        response = requests.post(
-            f"{BACKEND_URL}/auth/login",
-            json={
-                "email": email,
-                "password": password,
-            },
-            timeout=10,
-        )
-
-    except requests.RequestException as exc:
-
-        raise ConnectionError(
-            "Unable to connect to the backend server."
-        ) from exc
-
+    response = _request_with_retry(
+        "POST",
+        f"{BACKEND_URL}/auth/login",
+        on_retry=on_retry,
+        json={
+            "email": email,
+            "password": password,
+        },
+        timeout=COLD_START_WAKE_TIMEOUT,
+    )
 
     if response.status_code != 200:
 
@@ -114,7 +202,6 @@ def login(
             )
 
         raise RuntimeError(detail)
-
 
     return response.json()
 
@@ -140,13 +227,11 @@ def get_current_user(
             "Unable to connect to the backend server."
         ) from exc
 
-
     if response.status_code == 401:
 
         raise PermissionError(
             "Your session has expired. Please login again."
         )
-
 
     if response.status_code != 200:
 
@@ -166,7 +251,6 @@ def get_current_user(
 
         raise RuntimeError(detail)
 
-
     return response.json()
 
 
@@ -183,11 +267,9 @@ def get_progress() -> dict:
             timeout=2,
         )
 
-
         if response.status_code == 200:
 
             data = response.json()
-
 
             return {
 
@@ -245,7 +327,6 @@ def get_progress() -> dict:
 
             }
 
-
     except (
         requests.RequestException,
         ValueError,
@@ -253,7 +334,6 @@ def get_progress() -> dict:
     ):
 
         pass
-
 
     return {
 
@@ -289,6 +369,7 @@ def generate_report(
     citation_style: str,
     access_token: str,
     uploaded_file=None,
+    on_retry=None,
 ) -> dict:
 
     data = {
@@ -299,7 +380,6 @@ def generate_report(
 
     }
 
-
     headers = {
 
         "Authorization":
@@ -307,68 +387,48 @@ def generate_report(
 
     }
 
+    if uploaded_file is not None:
 
-    try:
+        files = {
 
-        if uploaded_file is not None:
+            "file": (
 
-            files = {
+                uploaded_file.name,
 
-                "file": (
+                uploaded_file.getvalue(),
 
-                    uploaded_file.name,
-
-                    uploaded_file.getvalue(),
-
-                    "application/pdf",
-
-                )
-
-            }
-
-
-            response = requests.post(
-
-                f"{BACKEND_URL}/generate-report",
-
-                data=data,
-
-                files=files,
-
-                headers=headers,
-
-                timeout=600,
+                "application/pdf",
 
             )
 
-        else:
+        }
 
-            response = requests.post(
+        response = _request_with_retry(
+            "POST",
+            f"{BACKEND_URL}/generate-report",
+            on_retry=on_retry,
+            data=data,
+            files=files,
+            headers=headers,
+            timeout=600,
+        )
 
-                f"{BACKEND_URL}/generate-report",
+    else:
 
-                data=data,
-
-                headers=headers,
-
-                timeout=600,
-
-            )
-
-
-    except requests.RequestException as exc:
-
-        raise ConnectionError(
-            "Unable to connect to the backend server."
-        ) from exc
-
+        response = _request_with_retry(
+            "POST",
+            f"{BACKEND_URL}/generate-report",
+            on_retry=on_retry,
+            data=data,
+            headers=headers,
+            timeout=600,
+        )
 
     if response.status_code == 401:
 
         raise PermissionError(
             "Your session has expired. Please login again."
         )
-
 
     if response.status_code != 200:
 
@@ -387,7 +447,6 @@ def generate_report(
             )
 
         raise RuntimeError(detail)
-
 
     return response.json()
 
@@ -421,13 +480,11 @@ def get_reports(
             "Unable to connect to the backend server."
         ) from exc
 
-
     if response.status_code == 401:
 
         raise PermissionError(
             "Your session has expired. Please login again."
         )
-
 
     if response.status_code != 200:
 
@@ -446,7 +503,6 @@ def get_reports(
             )
 
         raise RuntimeError(detail)
-
 
     return response.json()
 
@@ -481,13 +537,11 @@ def get_report(
             "Unable to connect to the backend server."
         ) from exc
 
-
     if response.status_code == 401:
 
         raise PermissionError(
             "Your session has expired. Please login again."
         )
-
 
     if response.status_code != 200:
 
@@ -506,7 +560,6 @@ def get_report(
             )
 
         raise RuntimeError(detail)
-
 
     return response.json()
 
@@ -541,13 +594,11 @@ def download_report_pdf(
             "Unable to connect to the backend server."
         ) from exc
 
-
     if response.status_code == 401:
 
         raise PermissionError(
             "Your session has expired. Please login again."
         )
-
 
     if response.status_code != 200:
 
@@ -566,7 +617,6 @@ def download_report_pdf(
             )
 
         raise RuntimeError(detail)
-
 
     return response.content
 
@@ -601,13 +651,11 @@ def delete_report(
             "Unable to connect to the backend server."
         ) from exc
 
-
     if response.status_code == 401:
 
         raise PermissionError(
             "Your session has expired. Please login again."
         )
-
 
     if response.status_code != 200:
 
@@ -626,6 +674,5 @@ def delete_report(
             )
 
         raise RuntimeError(detail)
-
 
     return response.json()

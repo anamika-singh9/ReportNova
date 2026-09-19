@@ -18,6 +18,10 @@ from app.auth.dependencies import get_current_user
 from fastapi.responses import FileResponse
 import os
 
+
+from app.agents.pdf_generator import PDFGeneratorAgent
+from fastapi.responses import Response
+
 router = APIRouter(
     prefix="/reports",
     tags=["Reports"],
@@ -54,6 +58,7 @@ def get_my_reports(
 # DOWNLOAD REPORT PDF
 # ==========================================
 
+
 @router.get("/{report_id}/download")
 def download_report_pdf(
     report_id: int,
@@ -71,28 +76,33 @@ def download_report_pdf(
     )
 
     if not report:
-
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Report not found.",
         )
 
-    if not report.pdf_path:
-
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="PDF not available for this report.",
+    # Agar disk pe PDF pehle se maujood hai, wahi bhejo (fast path)
+    if report.pdf_path and os.path.exists(report.pdf_path):
+        return FileResponse(
+            path=report.pdf_path,
+            media_type="application/pdf",
+            filename=f"research_report_{report.id}.pdf",
         )
 
-    if not os.path.exists(report.pdf_path):
+    # Warna (disk reset ho chuka hai) — content se fresh PDF banao
+    pdf_generator = PDFGeneratorAgent()
 
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="PDF file not found on server.",
-        )
+    new_pdf_path = pdf_generator.generate(
+        report=report.report_content,
+        filename=f"research_report_{report.id}.pdf",
+    )
+
+    # Naya path DB mein update kar do, taaki agli baar fast path chale
+    report.pdf_path = new_pdf_path
+    db.commit()
 
     return FileResponse(
-        path=report.pdf_path,
+        path=new_pdf_path,
         media_type="application/pdf",
         filename=f"research_report_{report.id}.pdf",
     )

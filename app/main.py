@@ -10,6 +10,10 @@ from fastapi import (
     Depends,
 )
 
+from fastapi.middleware.cors import (
+    CORSMiddleware,
+)
+
 from sqlalchemy.orm import Session
 
 from app.graph.workflow import (
@@ -81,6 +85,26 @@ app = FastAPI(
         "Agentic AI Research Report System"
     ),
 
+)
+
+
+# ==================================================
+# CORS MIDDLEWARE
+# ==================================================
+# Required because the frontend (Streamlit Cloud) and this
+# backend (Render) run on different domains. Without this,
+# the browser blocks every request from the frontend.
+#
+# For tighter security later, replace "*" in allow_origins
+# with your exact Streamlit app URL, e.g.:
+# ["https://reportnova.streamlit.app"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

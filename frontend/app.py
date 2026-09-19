@@ -208,6 +208,8 @@ def start_generation_job(
 
             "completed_at": None,
 
+            "retry_message": None,
+
         }
 
 
@@ -244,6 +246,25 @@ def start_generation_job(
 
 
             # ------------------------------------------------
+            # COLD START RETRY CALLBACK
+            # ------------------------------------------------
+            # This runs on the background thread, so it must NOT
+            # call any st.* commands directly. Instead, it writes
+            # a message into the shared job dict, which the main
+            # thread (monitor_generation) reads and displays safely.
+
+            def on_retry(attempt):
+
+                with st._generation_jobs_lock:
+
+                    if job_id in st._generation_jobs:
+
+                        st._generation_jobs[job_id]["retry_message"] = (
+                            f"⏳ Server is waking up... attempt {attempt}"
+                        )
+
+
+            # ------------------------------------------------
             # CALL BACKEND
             # ------------------------------------------------
 
@@ -256,6 +277,8 @@ def start_generation_job(
                 access_token=access_token,
 
                 uploaded_file=file_for_backend,
+
+                on_retry=on_retry,
 
             )
 
@@ -300,6 +323,8 @@ def start_generation_job(
 
                     "completed_at": time.time(),
 
+                    "retry_message": None,
+
                 }
 
 
@@ -326,6 +351,8 @@ def start_generation_job(
                     ),
 
                     "completed_at": time.time(),
+
+                    "retry_message": None,
 
                 }
 
@@ -397,9 +424,22 @@ def monitor_generation():
 
     if status == "running":
 
-        st.info(
-            "🔄 Generating research report..."
+        retry_message = job.get(
+            "retry_message"
         )
+
+        if retry_message:
+
+            # Backend is (or was) sleeping — show the wake-up status
+            st.warning(
+                retry_message
+            )
+
+        else:
+
+            st.info(
+                "🔄 Generating research report..."
+            )
 
         st.caption(
             "⚡ Research agents are working. "
